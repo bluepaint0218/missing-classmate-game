@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>站内搜索结果 - 同桌失踪事件</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+            background: #e0f0ff;
+            margin: 0;
+        }
+
+        header {
+            background: linear-gradient(to bottom, #2c5aa0, #1e3a8a);
+            color: #fff;
+            padding: 10px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,.2);
+        }
+
+        。header-inner {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        。logo-text {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        。search-form {
+            display: flex;
+            gap: 6px;
+            flex: 1;
+            justify-content: flex-end;
+        }
+
+        。search-input {
+            flex: 1;
+            max-width: 260px;
+            padding: 6px 10px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+        }
+
+        。search-btn {
+            padding: 6px 14px;
+            border-radius: 4px;
+            border: 1px solid #1e3a8a;
+            background: #fff;
+            color: #1e3a8a;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        main {
+            max-width: 960px;
+            margin: 20px auto;
+            padding: 0 16px 32px;
+        }
+
+        。result-card {
+            background: #fff;
+            border-radius: 8px;
+            border: 1px solid #a0c0f0;
+            box-shadow: 0 4px 8px rgba(0,0,0,.15);
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 20px;
+            color: #2c5aa0;
+            margin-bottom: 10px;
+        }
+
+        。query-text {
+            font-weight: bold;
+            color: #d32f2f;
+        }
+
+        .result-list {
+            margin-top: 12px;
+            padding-left: 18px;
+        }
+
+        .result-item {
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .result-item a {
+            color: #1e3a8a;
+            text-decoration: none;
+        }
+
+        .result-item a:hover {
+            text-decoration: underline;
+        }
+
+        .tip {
+            margin-top: 12px;
+            font-size: 13px;
+            color: #555;
+        }
+
+        @media (max-width: 600px) {
+            .header-inner {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .search-form {
+                width: 100%;
+                justify-content: flex-start;
+            }
+            .search-input { max-width: none; }
+        }
+    </style>
+</head>
+<body>
+<header>
+    <div class="header-inner">
+        <div class="logo-text">搜索结果</div>
+        <form class="search-form" action="search-results.html" method="GET">
+            <input
+                type="text"
+                name="q"
+                class="search-input"
+                placeholder="重新输入关键词..."
+                autocomplete="off"
+                required
+            >
+            <button class="search-btn" type="submit">搜索</button>
+        </form>
+    </div>
+</header>
+
+<main>
+    <section class="result-card">
+        <h1>你刚刚搜索了：<span class="query-text" id="queryText"></span></h1>
+        <div id="resultArea"></div>
+    </section>
+</main>
+
+<!-- 引入关键词映射脚本 -->
+<script src="assets/js/search.js"></script>
+<script>
+    function getQueryParam(name) {
+        const params = new URLSearchParams(window.location.search);
+        return params.get(name) || "";
+    }
+
+    function renderResults(query, urls) {
+        const queryText = document.getElementById('queryText');
+        const resultArea = document.getElementById('resultArea');
+        queryText.textContent = query || "（空）";
+
+        if (!query) {
+            resultArea.innerHTML = "<p>你还没有输入关键词哦，可以回到上一页重新输入。</p>";
+            return;
+        }
+
+        if (!urls || urls.length === 0) {
+            resultArea.innerHTML = `
+                <p>暂时没有找到和这个词直接相关的隐藏页面。</p>
+                <p class="tip">
+                    提示：可以尝试换个说法，例如：<br>
+                    学习线：<strong>月考 / 成绩单 / 压力</strong><br>
+                    社交线：<strong>群聊 / 聊天 / 朋友</strong><br>
+                    家庭线：<strong>家长 / 短信 / 吵架</strong><br>
+                    传闻线：<strong>旧教学楼 / 传闻 / 影子</strong><br>
+                    账号线：<strong>座位表 / 校园网 / 登录</strong><br>
+                    生日线：<strong>生日 / 蛋糕 / 聚会</strong><br>
+                    体检线：<strong>体检 / 心理筛查 / 健康</strong>
+                </p>
+            `;
+            return;
+        }
+
+        // 只有一个结果：3秒后自动跳转
+        if (urls.length === 1) {
+            const url = urls[0];
+            resultArea.innerHTML = `
+                <p>找到一个相关页面：</p>
+                <ul class="result-list">
+                    <li class="result-item"><a href="${url}">${url}</a></li>
+                </ul>
+                <p class="tip">3 秒后自动跳转，如果没有跳转，可点击上面的链接。</p>
+            `;
+            setTimeout(() => {
+                window.location.href = url;
+            }, 3000);
+            return;
+        }
+
+        // 多个结果时，列出所有可点选
+        const listItems = urls.map(url => 
+            `<li class="result-item"><a href="${url}">${url}</a></li>`
+        ).join("");
+
+        resultArea.innerHTML = `
+            <p>找到多个相关页面，请选择一个你想先看的：</p>
+            <ul class="result-list">
+                ${listItems}
+            </ul>
+            <p class="tip">不同链接可能从不同角度展示同桌的处境。</p>
+        `;
+    }
+
+    // 页面加载时执行
+    (function() {
+        const query = getQueryParam('q');
+        const urls = searchByQuery(query); // 来自 assets/js/search.js
+        renderResults(query, urls);
+    })();
+</script>
+</body>
+</html>
