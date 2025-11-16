@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>八年级同桌失踪事件</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+            background: linear-gradient(135deg, #e0f0ff 0%, #c0d8f0 100%);
+            color: #333;
+            line-height: 1.6;
+        }
+
+        header {
+            background: linear-gradient(to bottom, #2c5aa0, #1e3a8a);
+            color: #fff;
+            padding: 12px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,.2);
+        }
+
+        .header-inner {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .logo-text {
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .search-form {
+            display: flex;
+            gap: 6px;
+            flex: 1;
+            justify-content: flex-end;
+        }
+
+        .search-input {
+            flex: 1;
+            max-width: 260px;
+            padding: 6px 10px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+        }
+
+        .search-btn {
+            padding: 6px 14px;
+            border-radius: 4px;
+            border: 1px solid #1e3a8a;
+            background: #fff;
+            color: #1e3a8a;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .search-btn:hover { background: #e2ecff; }
+
+        main {
+            max-width: 960px;
+            margin: 24px auto;
+            padding: 0 16px 32px;
+        }
+
+        .intro-card {
+            background: #fff;
+            border-radius: 8px;
+            border: 1px solid #a0c0f0;
+            box-shadow: 0 4px 8px rgba(0,0,0,.15);
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 22px;
+            color: #2c5aa0;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 12px;
+        }
+
+        .notice {
+            background: #fff8e1;
+            border: 1px solid #ffcc80;
+            border-radius: 6px;
+            padding: 10px 12px;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .highlight { color: #d32f2f; font-weight: bold; }
+
+        .clue-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 14px;
+            margin-top: 10px;
+        }
+
+        .clue-card {
+            background: linear-gradient(to bottom, #f8fbff, #e8f0ff);
+            border: 1px solid #a0c0f0;
+            border-radius: 6px;
+            padding: 12px 14px;
+            font-size: 14px;
+        }
+
+        .clue-title {
+            font-weight: bold;
+            color: #1e3a8a;
+            margin-bottom: 6px;
+        }
+
+        .fake-photo {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px dashed #90b0e0;
+            background: #f0f6ff;
+            font-size: 12px;
+            color: #555;
+        }
+
+        .keyword-tip {
+            margin-top: 6px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .keyword-tip span {
+            display: inline-block;
+            background: #fff;
+            border-radius: 3px;
+            padding: 2px 6px;
+            margin: 2px 2px 0 0;
+            border: 1px solid #c5cae9;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            margin-top: 18px;
+        }
+
+        @media (max-width: 600px) {
+            .header-inner {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .search-form {
+                width: 100%;
+                justify-content: flex-start;
+            }
+            .search-input { max-width: none; }
+        }
+    </style>
+</head>
+<body>
+<header>
+    <div class="header-inner">
+        <div class="logo-text">八年级 · 同桌失踪事件</div>
+        <!-- 搜索框：提交到 search-results.html -->
+        <form class="search-form" action="search-results.html" method="GET">
+            <input
+                type="text"
+                name="q"
+                class="search-input"
+                placeholder="输入你觉得可疑的词，例如：月考 / 座位表 / 体检..."
+                autocomplete="off"
+                required
+            >
+            <button class="search-btn" type="submit">站内搜索</button>
+        </form>
+    </div>
+</header>
+
+<main>
+    <section class="intro-card">
+        <h1>今天早自习，你的同桌没有来。</h1>
+        <p class="subtitle">
+            班主任只留下一句话：<span class="highlight">“帮老师一起找找，他最近好像有点不对劲。”</span>
+        </p>
+
+        <div class="notice">
+            这是一个<span class="highlight">没有进度条的网页解谜</span>。  
+            你需要在各个页面中寻找线索，把你觉得可疑的词输入上方的搜索框，  
+            找到被“藏起来”的网页，一步步接近真相。
+        </div>
+
+        <p>你打开同桌的课桌和书包，看到了几样东西：</p>
+
+        <div class="clue-grid">
+            <div class="clue-card">
+                <div class="clue-title">线索一：学习压力？</div>
+                <p>桌洞里塞着一张揉皱的月考成绩单，角落还写着一句小字：“我是不是…真的不行了”。</p>
+                <div class="fake-photo">（这里可以放一张你用 AI 生成的：<br>“揉皱的试卷放在课桌里”的图片）</div>
+                <div class="keyword-tip">
+                    你也许可以尝试搜索：  
+                    <span>月考</span><span>成绩单</span><span>压力</span>
+                </div>
+            </div>
+
+            <div class="clue-card">
+                <div class="clue-title">线索二：和同学闹矛盾？</div>
+                <p>同桌的练习本夹着一张打印出来的聊天记录，有几行被荧光笔画了出来：</p>
+                <p>“算了，当我没朋友吧。”</p>
+                <div class="fake-photo">（这里可以放一张：<br>“模糊的手机聊天截屏”的图片）</div>
+                <div class="keyword-tip">
+                    可以试试：<span>群聊</span><span>聊天</span><span>朋友</span>
+                </div>
+            </div>
+
+            <div class="clue-card">
+                <div class="clue-title">线索三：家里出了问题？</div>
+                <p>他的手机壳里夹着一张折叠的纸条，上面像是家长发来的短信，被抄了下来：</p>
+                <p>“你到底还想怎样？”</p>
+                <div class="fake-photo">（这里可以放一张：<br>“家长短信截图”的图片）</div>
+                <div class="keyword-tip">
+                    也许可以搜索：<span>家长</span><span>短信</span><span>吵架</span>
+                </div>
+            </div>
+
+            <div class="clue-card">
+                <div class="clue-title">线索四：学校的奇怪传闻？</div>
+                <p>在他的文件夹里，你发现一张打印出来的帖子，标题是：</p>
+                <p>《旧教学楼的晚上，到底发生过什么？》</p>
+                <div class="fake-photo">（这里可以放：<br>“旧教学楼昏暗走廊”的图片）</div>
+                <div class="keyword-tip">
+                    你可以输入：<span>旧教学楼</span><span>传闻</span><span>影子</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="notice" style="margin-top:18px;">
+            小提示：  
+            <br>① 上面的词只是示例，你可以输入任何你觉得可疑的词。  
+            <br>② 同一个词在不同页面中也可能出现。  
+            <br>③ 故事里所有角色、事件都是虚构的，用来帮助我们思考：<span class="highlight">当身边的人“失踪”在自己的情绪里时，我们能做什么？</span>
+        </div>
+
+        <div class="footer">
+            如果你准备好了，就从输入第一个关键词开始搜索吧。
+        </div>
+    </section>
+</main>
+</body>
+</html>
