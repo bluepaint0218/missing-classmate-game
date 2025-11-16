@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>学生心理问卷系统登录</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+            background: radial-gradient(circle at top, #e8f0ff 0%, #c0d8f0 40%, #90a8c0 100%);
+            margin: 0;
+            color: #333;
+        }
+
+        .top-bar {
+            background: linear-gradient(to bottom, #2c5aa0, #1e3a8a);
+            color: #fff;
+            padding: 12px 0;
+            text-align: center;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,.2);
+        }
+
+        .container {
+            max-width: 420px;
+            margin: 40px auto;
+            background: #fff;
+            border-radius: 8px;
+            border: 1px solid #a0c0f0;
+            box-shadow: 0 6px 14px rgba(0,0,0,.3);
+            padding: 24px 24px 20px;
+        }
+
+        h1 {
+            font-size: 20px;
+            text-align: center;
+            color: #2c5aa0;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: #666;
+            text-align: center;
+            margin-bottom: 18px;
+        }
+
+        .field {
+            margin-bottom: 12px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 4px;
+            color: #444;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 4px;
+            border: 1px solid #b0c4de;
+            font-size: 14px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #2c5aa0;
+            box-shadow: 0 0 0 1px rgba(44,90,160,0.2);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 10px;
+            margin-top: 6px;
+            background: linear-gradient(to bottom, #4a7bc8, #2c5aa0);
+            color: #fff;
+            border-radius: 20px;
+            border: 1px solid #1e3a8a;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: bold;
+            text-shadow: 1px 1px 1px rgba(0,0,0,.3);
+        }
+
+        .login-btn:hover {
+            background: linear-gradient(to bottom, #5b88d4, #2c5aa0);
+        }
+
+        .message {
+            margin-top: 10px;
+            font-size: 13px;
+            padding: 8px 10px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .message.error {
+            display: block;
+            background: #fbe9e7;
+            border: 1px solid #ffab91;
+            color: #c62828;
+        }
+
+        .message.success {
+            display: block;
+            background: #e8f5e9;
+            border: 1px solid #a5d6a7;
+            color: #2e7d32;
+        }
+
+        .hint {
+            margin-top: 12px;
+            font-size: 12px;
+            color: #555;
+            background: #f5f7ff;
+            border-radius: 4px;
+            border: 1px dashed #b0c4de;
+            padding: 8px 10px;
+        }
+
+        .hint span {
+            font-weight: bold;
+            color: #d32f2f;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 14px;
+            font-size: 11px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+<div class="top-bar">八年级学生心理问卷系统（演示版）</div>
+
+<div class="container">
+    <h1>学生登录</h1>
+    <p class="subtitle">请使用你的<span>学号</span>与<span>生日</span>登录系统</p>
+
+    <div class="field">
+        <label for="userId">学号 / 账号</label>
+        <input
+            type="text"
+            id="userId"
+            placeholder="例如：八(3)班15号 → 8315"
+            autocomplete="off"
+        >
+    </div>
+
+    <div class="field">
+        <label for="password">密码</label>
+        <input
+            type="password"
+            id="password"
+            placeholder="八位数字生日，例如：20100218"
+        >
+    </div>
+
+    <button class="login-btn" id="loginBtn">登录</button>
+
+    <div id="msg" class="message"></div>
+
+    <div class="hint">
+        提示：你已经在其它页面看到过他的
+        <span>班级和座位号</span> / <span>生日日期</span> / <span>出生年份</span>。<br>
+        把这些信息组合起来，就可以登录了。
+    </div>
+
+    <div class="footer">
+        本页面仅用于课堂游戏和心理教育示范。
+    </div>
+</div>
+
+<script>
+    // 最终答案：账号 = 8315, 密码 = 20100218
+    const CORRECT_USER = "8315";
+    const CORRECT_PASS = "20100218";
+
+    const userInput = document.getElementById('userId');
+    const passInput = document.getElementById('password');
+    const msgBox = document.getElementById('msg');
+    const loginBtn = document.getElementById('loginBtn');
+
+    function showMessage(text, type) {
+        msgBox.textContent = text;
+        msgBox.className = "message " + type;
+    }
+
+    function handleLogin() {
+        const u = (userInput.value || "").trim();
+        const p = (passInput.value || "").trim();
+
+        if (!u || !p) {
+            showMessage("请输入完整的账号和密码。", "error");
+            return;
+        }
+
+        if (u === CORRECT_USER && p === CORRECT_PASS) {
+            showMessage("登录成功，正在为你打开他的真实想法……", "success");
+            setTimeout(() => {
+                window.location.href = "truth.html";
+            }, 1500);
+        } else {
+            showMessage(
+                "账号或密码错误。请再回想一下：他是几班几号？他的生日是哪一年哪月哪日？",
+                "error"
+            );
+        }
+    }
+
+    loginBtn.addEventListener('click', handleLogin);
+    passInput.addEventListener('keypress', (e) => {
+        if (e.key === "Enter") handleLogin();
+    });
+</script>
+</body>
+</html>
