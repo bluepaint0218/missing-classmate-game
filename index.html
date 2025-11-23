@@ -179,7 +179,7 @@
             );
         };
 
-        // --- 1. 现实世界 (Intro - 文本润色版) ---
+        // --- 1. 现实世界 (Intro) ---
         const RealWorldIntro = ({ onEnter }) => {
             return (
                 <div className="h-screen w-full bg-stone-200 flex items-center justify-center p-8 text-stone-900 font-serif selection:bg-stone-400">
@@ -236,7 +236,7 @@
         const NoResultPage = ({ term, navigate }) => {
             let hint = "";
             if (term === "broad") {
-                hint = "提示：光影是欺骗视觉的艺术。只有在电压不稳、光影变化时，真正的信号才会显现。";
+                hint = "提示：光影是欺骗视觉的艺术。只有在电压不稳、光影变化时(Wait for the glitch)，真正的信号才会显现。";
             }
             
             return (
@@ -265,7 +265,7 @@
             </div>
         );
 
-        // --- 4. 博客主页 (核心枢纽 - 全屏无黑边) ---
+        // --- 4. 博客主页 (核心枢纽) ---
         const BlogIndex = ({ navigate, onLogin }) => {
             const [search, setSearch] = useState("");
             const [searching, setSearching] = useState(false);
@@ -295,7 +295,7 @@
                     } else if (["class", "班级", "群", "chat"].some(k => term.includes(k))) {
                         navigate("class.html");
                     } else if (["朋友圈", "moments", "动态"].some(k => term.includes(k))) {
-                        navigate("moments.html"); // 独立跳转
+                        navigate("moments.html");
                     } else if (["云盘", "cloud"].some(k => term.includes(k))) {
                         navigate("cloud.html");
                     } else if (["qq", "zone", "空间"].some(k => term.includes(k))) {
@@ -313,8 +313,6 @@
             };
 
             const handleLogin = () => {
-                // 账号：学号 20210904
-                // 密码：完整生日 20101105
                 if (account === "20210904") {
                     if (password === "20101105") {
                         onLogin();
@@ -329,7 +327,7 @@
             };
 
             const forgotPassword = () => {
-                alert("系统提示：\n默认账号：用户学号\n默认密码：用户生日");
+                alert("【系统提示】\n账号格式：用户学号 (School ID)\n密码格式：用户生日 (Birthday YYYYMMDD)");
             };
 
             return (
@@ -369,8 +367,8 @@
                                     <input className="w-full border p-2 text-sm bg-gray-50" placeholder="账号 (Account)" value={account} onChange={e=>setAccount(e.target.value)}/>
                                     <input className="w-full border p-2 text-sm bg-gray-50" type="password" placeholder="密码 (Password)" value={password} onChange={e=>setPassword(e.target.value)}/>
                                     <button onClick={handleLogin} className="w-full bg-black text-white py-2 text-sm hover:bg-gray-800 transition">登录</button>
-                                    <div className="text-center">
-                                        <button onClick={forgotPassword} className="text-xs text-blue-500 hover:underline mt-2">
+                                    <div className="text-center mt-2">
+                                        <button onClick={forgotPassword} className="text-xs text-blue-500 hover:text-blue-700 underline">
                                             忘记密码?
                                         </button>
                                     </div>
@@ -387,7 +385,7 @@
                                 <p className="text-gray-600 text-sm leading-relaxed">
                                     我把我的世界切成了两半。<br/>
                                     一半是所谓的港湾，但我只感到冰冷。<br/>
-                                    另一半是所谓的殿堂，但我只觉得像个笼子。<br/>
+                                    另一半是所谓的神圣殿堂，但我只觉得像个笼子。<br/>
                                     <br/>
                                     再见了。
                                 </p>
@@ -431,7 +429,7 @@
                             {/* 正面 */}
                             <div className="absolute w-full h-full bg-white p-10 backface-hidden paper-texture text-black border border-gray-300 cursor-pointer overflow-hidden">
                                 <div className="flex justify-between border-b-2 border-black pb-4 mb-8">
-                                    <div><h1 className="text-xl font-serif font-bold">八年级期中测试 - 数学</h1><p className="mt-1">班级：9班 / 姓名：陈默</p></div>
+                                    <div><h1 className="text-xl font-serif font-bold">八年级期中测试 - 数学</h1><p className="mt-1">班级：09 / 姓名：陈默</p></div>
                                     <div className="text-7xl font-hand text-red-600 rotate-[-12deg] font-bold opacity-90">58</div>
                                 </div>
                                 <div className="space-y-6 font-serif text-base relative">
@@ -441,9 +439,6 @@
                                         <p>2. 已知 x = √3 + 1, 求 x² - 2x...</p>
                                         <p>3. 二次根式 √(a-1) 有意义的条件...</p>
                                         <p>4. 化简: 1/(√2 + 1) ...</p>
-                                        <p>5. 已知x1，x2，求x1^2+x2^2 的值 ...</p>
-                                        <p>6. 已知a+b=﹣8，ab=6，则的值为 ...</p>
-                                        <p>7. 已知：x=2，y=2，求下列各式的值 ...</p>
                                         <p>...</p>
                                     </div>
                                     <div className="p-3 bg-red-50 text-red-800 text-sm border-l-4 border-red-800 relative z-10 transform rotate-1">
@@ -506,7 +501,7 @@
             const [unlocked, setUnlocked] = useState(false);
 
             useEffect(() => {
-                // Target: 10, 180, 100
+                // Target: 50, 180, 100
                 const dist = Math.sqrt(Math.pow(rx-50, 2) + Math.pow(ry-180, 2) + Math.pow(rz-100, 2));
                 // 白雾机制：距离越近，雾越淡
                 const opacity = Math.min(1, Math.max(0, (dist - 20) / 200)); 
@@ -527,14 +522,9 @@
                         <div className="w-full h-full relative transform-style-3d transition-transform duration-200" style={{ transform: `rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(${rz}deg)` }}>
                             
                             {/* BROAD (Center) */}
-                            {/* 初始歪斜逻辑：文字本身带有反向变换，只有当容器旋转到特定角度(100,180,100)时，文字才会看起来是正的 */}
-                            {/* 为了简化实现，我们直接设定文字的 transform 是固定的，而外层容器旋转去抵消它是不太直观的数学计算。*/}
-                            {/* 更好的方式：文字是正的，但是初始 rx, ry, rz 偏离目标值。*/}
-                            {/* 按照需求：“broad的本身的位置是倾斜歪的，而不是默认在摆正的位置”。这通常意味着默认状态(0,0,0)下它看起来是歪的。*/}
-                            {/* 在当前逻辑中，文字是正对着 Z 轴平面的。如果 rx=0, ry=0, rz=0，它就是正的。*/}
-                            {/* 所以我们需要给文字加一个初始的歪斜变换。*/}
+                            {/* 初始倾斜：设置反向旋转，使得默认(0,0,0)看起来是歪的，只有当外层旋转到(50,180,100)时，内部文字才看起来是正的 */}
                             <div className="absolute inset-0 flex items-center justify-center text-5xl font-black text-cyan-400 backface-visible" 
-                                 style={{transform: 'rotateX(-50deg) rotateY(-180deg) rotateZ(-100deg) translateZ(20px)'}}>
+                                 style={{transform: 'rotateZ(-100deg) rotateY(-180deg) rotateX(-50deg) translateZ(20px)'}}>
                                 BROAD
                             </div>
 
@@ -678,7 +668,7 @@
             );
         };
 
-        // --- 学校线 5.5：朋友圈 (独立) ---
+        // --- 学校线 5.5：朋友圈 (独立页面) ---
         const Moments = () => {
             return (
                 <div className="h-full bg-[#f2f2f2] flex justify-center text-black font-sans overflow-hidden">
@@ -803,8 +793,8 @@
                                 <div className="w-full h-12 bg-black mb-12"></div>
                                 <div className="text-left w-3/4 space-y-4">
                                     <div className="text-xs text-gray-300">
-                                        联系邮箱:<br/>
-                                        **********@corp.com
+                                        联系邮箱 (字迹很淡):<br/>
+                                        chen_*****@corp.com
                                     </div>
                                     <p className="font-bold text-lg text-gray-800 mt-8">门禁卡</p>
                                     <p className="text-xs text-gray-500">Access Control Card</p>
@@ -833,7 +823,7 @@
                             ) : (
                                 <div className="mt-4 p-4 bg-black border border-green-900 text-xs animate-fade-in">
                                     <p className="text-white font-bold mb-2">[系统提示]</p>
-                                    <p>密码提示已发送至陈建国先生的云盘。</p>
+                                    <p>密码提示已发送至陈建国的云盘。</p>
                                     <p>云盘登录规则：<span className="text-yellow-500">完整邮箱</span> + <span className="text-yellow-500">他最看重的东西(英文)</span>。</p>
                                 </div>
                             )}
@@ -974,7 +964,6 @@
                 "你向他伸出了手。",
                 "那一刻，所有的噪音、分数、争吵，都消失了。",
                 "只剩下窗外透进来的一束光。",
-                "请帮助身边的陈默们。"
                 "THE END"
             ];
 
