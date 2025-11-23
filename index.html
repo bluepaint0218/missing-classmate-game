@@ -2,262 +2,1095 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>八年级同桌失踪事件</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>消失的同桌 - The Vanished Deskmate (Ver 17.0 Final)</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Share+Tech+Mono&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap');
 
         body {
-            font-family: "Microsoft YaHei", Arial, sans-serif;
-            background: linear-gradient(135deg, #e0f0ff 0%, #c0d8f0 100%);
-            color: #333;
-            line-height: 1.6;
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #050505;
+            color: #d4d4d4;
+            overflow: hidden;
+            user-select: text;
         }
 
-        header {
-            background: linear-gradient(to bottom, #2c5aa0, #1e3a8a);
-            color: #fff;
-            padding: 12px 0;
-            box-shadow: 0 2px 4px rgba(0,0,0,.2);
+        .font-mono { font-family: 'Share Tech Mono', monospace; }
+        .font-serif { font-family: 'Noto Serif SC', serif; }
+        .font-hand { font-family: 'Ma Shan Zheng', cursive; }
+
+        /* CRT 扫描线 */
+        .scanlines {
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0,0,0,0.1) 50%,
+                rgba(0,0,0,0.1)
+            );
+            background-size: 100% 4px;
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
+            pointer-events: none; z-index: 60;
         }
 
-        .header-inner {
-            max-width: 960px;
-            margin: 0 auto;
-            padding: 0 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
+        /* 扫描条动画 */
+        .scan-bar {
+            position: fixed;
+            left: 0; right: 0;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+            opacity: 0;
+            z-index: 61;
+            pointer-events: none;
+            animation: scan-move 8s linear infinite;
+        }
+        @keyframes scan-move {
+            0% { top: -10%; opacity: 0; }
+            10% { opacity: 0.5; }
+            90% { opacity: 0.5; }
+            100% { top: 110%; opacity: 0; }
         }
 
-        .logo-text {
-            font-size: 18px;
-            font-weight: bold;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        /* 全局负片效果容器 */
+        .glitch-container {
+            width: 100%;
+            height: 100%;
+            transition: filter 0.1s;
+        }
+        
+        .glitch-active {
+            animation: invert-shake 0.2s infinite;
+            filter: invert(1) contrast(1.2);
         }
 
-        .search-form {
-            display: flex;
-            gap: 6px;
-            flex: 1;
-            justify-content: flex-end;
+        @keyframes invert-shake {
+            0% { transform: translate(0,0); }
+            25% { transform: translate(-2px, 1px); }
+            50% { transform: translate(1px, -1px); }
+            75% { transform: translate(2px, 0); }
+            100% { transform: translate(0, 0); }
         }
 
-        .search-input {
-            flex: 1;
-            max-width: 260px;
-            padding: 6px 10px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-            font-size: 14px;
+        /* 3D 翻转通用 */
+        .perspective-1000 { perspective: 1000px; }
+        .transform-style-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+
+        /* 纸张纹理 */
+        .paper-texture {
+            background-color: #f4f1ea;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23d1d5db' fill-opacity='0.2'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7z'/%3E%3C/g%3E%3C/svg%3E");
         }
 
-        .search-btn {
-            padding: 6px 14px;
-            border-radius: 4px;
-            border: 1px solid #1e3a8a;
-            background: #fff;
-            color: #1e3a8a;
-            font-size: 14px;
-            cursor: pointer;
+        /* 动态雾干扰 */
+        .fog-overlay {
+            background: radial-gradient(circle at 50% 50%, transparent 20%, rgba(255,255,255,0.95) 100%),
+                        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='5' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.8'/%3E%3C/svg%3E");
+            transition: opacity 0.8s ease;
+            mix-blend-mode: hard-light;
         }
 
-        .search-btn:hover { background: #e2ecff; }
-
-        main {
-            max-width: 960px;
-            margin: 24px auto;
-            padding: 0 16px 32px;
-        }
-
-        .intro-card {
-            background: #fff;
-            border-radius: 8px;
-            border: 1px solid #a0c0f0;
-            box-shadow: 0 4px 8px rgba(0,0,0,.15);
-            padding: 24px;
-            margin-bottom: 20px;
-        }
-
-        h1 {
-            font-size: 22px;
-            color: #2c5aa0;
-            margin-bottom: 10px;
-            text-align: center;
-        }
-
-        .subtitle {
-            text-align: center;
-            font-size: 14px;
-            color: #555;
-            margin-bottom: 12px;
-        }
-
-        .notice {
-            background: #fff8e1;
-            border: 1px solid #ffcc80;
-            border-radius: 6px;
-            padding: 10px 12px;
-            font-size: 14px;
-            margin-bottom: 16px;
-        }
-
-        .highlight { color: #d32f2f; font-weight: bold; }
-
-        .clue-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-            gap: 14px;
-            margin-top: 10px;
-        }
-
-        .clue-card {
-            background: linear-gradient(to bottom, #f8fbff, #e8f0ff);
-            border: 1px solid #a0c0f0;
-            border-radius: 6px;
-            padding: 12px 14px;
-            font-size: 14px;
-        }
-
-        .clue-title {
-            font-weight: bold;
-            color: #1e3a8a;
-            margin-bottom: 6px;
-        }
-
-        .fake-photo {
-            margin-top: 8px;
-            padding: 8px;
-            border-radius: 4px;
-            border: 1px dashed #90b0e0;
-            background: #f0f6ff;
-            font-size: 12px;
-            color: #555;
-        }
-
-        .keyword-tip {
-            margin-top: 6px;
-            font-size: 12px;
-            color: #666;
-        }
-
-        .keyword-tip span {
-            display: inline-block;
-            background: #fff;
-            border-radius: 3px;
-            padding: 2px 6px;
-            margin: 2px 2px 0 0;
-            border: 1px solid #c5cae9;
-        }
-
-        .footer {
-            text-align: center;
-            font-size: 12px;
-            color: #666;
-            margin-top: 18px;
-        }
-
-        @media (max-width: 600px) {
-            .header-inner {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            .search-form {
-                width: 100%;
-                justify-content: flex-start;
-            }
-            .search-input { max-width: none; }
+        /* 滚动条 */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #1a1a1a; }
+        ::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #666; }
+        
+        .fade-enter { opacity: 0; }
+        .fade-enter-active { opacity: 1; transition: opacity 500ms ease-in; }
+        
+        .typewriter-text {
+            overflow: hidden;
+            white-space: pre-wrap;
+            animation: typing 0.05s steps(1);
         }
     </style>
 </head>
 <body>
-<header>
-    <div class="header-inner">
-        <div class="logo-text">八年级 · 同桌失踪事件</div>
-        <!-- 搜索框：提交到 search-results.html -->
-        <form class="search-form" action="search-results.html" method="GET">
-            <input
-                type="text"
-                name="q"
-                class="search-input"
-                placeholder="输入你觉得可疑的词，例如：月考 / 座位表 / 体检..."
-                autocomplete="off"
-                required
-            >
-            <button class="search-btn" type="submit">站内搜索</button>
-        </form>
-    </div>
-</header>
+    <div id="root"></div>
 
-<main>
-    <section class="intro-card">
-        <h1>今天早自习，你的同桌没有来。</h1>
-        <p class="subtitle">
-            班主任只留下一句话：<span class="highlight">“帮老师一起找找，他最近好像有点不对劲。”</span>
-        </p>
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
 
-        <div class="notice">
-            这是一个<span class="highlight">没有进度条的网页解谜</span>。  
-            你需要在各个页面中寻找线索，把你觉得可疑的词输入上方的搜索框，  
-            找到被“藏起来”的网页，一步步接近真相。
-        </div>
+        // --- 音效系统 ---
+        const AudioSystem = () => {
+            const [isNoiseOn, setIsNoiseOn] = useState(false);
+            const audioCtxRef = useRef(null);
+            const noiseNodeRef = useRef(null);
 
-        <p>你打开同桌的课桌和书包，看到了几样东西：</p>
+            const initAudio = () => {
+                if (!audioCtxRef.current) {
+                    audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                return audioCtxRef.current;
+            };
 
-        <div class="clue-grid">
-            <div class="clue-card">
-                <div class="clue-title">线索一：学习压力？</div>
-                <p>桌洞里塞着一张揉皱的月考成绩单，角落还写着一句小字：“我是不是…真的不行了”。</p>
-                <div class="fake-photo">（这里可以放一张你用 AI 生成的：<br>“揉皱的试卷放在课桌里”的图片）</div>
-                <div class="keyword-tip">
-                    你也许可以尝试搜索：  
-                    <span>月考</span><span>成绩单</span><span>压力</span>
+            const toggleNoise = () => {
+                const ctx = initAudio();
+                if (isNoiseOn) {
+                    if (noiseNodeRef.current) { noiseNodeRef.current.stop(); noiseNodeRef.current = null; }
+                    setIsNoiseOn(false);
+                } else {
+                    const bufferSize = ctx.sampleRate * 2;
+                    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                    const data = buffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) {
+                        data[i] = (Math.random() * 2 - 1) * 0.02; 
+                    }
+                    const noise = ctx.createBufferSource();
+                    noise.buffer = buffer;
+                    noise.loop = true;
+                    const gain = ctx.createGain();
+                    gain.gain.value = 0.1;
+                    noise.connect(gain);
+                    gain.connect(ctx.destination);
+                    noise.start();
+                    noiseNodeRef.current = noise;
+                    setIsNoiseOn(true);
+                }
+            };
+
+            window.playTone = (duration, frequency = 700) => {
+                const ctx = initAudio();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(frequency, ctx.currentTime);
+                gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + duration);
+            };
+
+            return (
+                <button onClick={toggleNoise} className={`fixed bottom-4 right-4 z-50 px-3 py-1 text-xs font-mono border rounded transition-colors opacity-40 hover:opacity-100 ${isNoiseOn ? 'text-green-500 border-green-500 bg-black' : 'text-gray-500 border-gray-700 bg-black'}`}>
+                    {isNoiseOn ? "SIGNAL: STABLE" : "SIGNAL: LOST"}
+                </button>
+            );
+        };
+
+        // --- 1. 现实世界 (Intro - 文本润色版) ---
+        const RealWorldIntro = ({ onEnter }) => {
+            return (
+                <div className="h-screen w-full bg-stone-200 flex items-center justify-center p-8 text-stone-900 font-serif selection:bg-stone-400">
+                    <div className="max-w-2xl space-y-8 animate-fade-in">
+                        <div className="border-l-4 border-black pl-6 py-2">
+                            <h1 className="text-4xl font-bold mb-2">早读课：7:10 AM</h1>
+                            <p className="text-stone-600 italic">教室前排的空座位</p>
+                        </div>
+                        <p className="text-lg leading-loose">
+                            前排靠窗的位置是空的。阳光透过玻璃洒在布满刻痕的课桌上，尘埃在光柱中飞舞，唯独少了那个身影。<br/>
+                            我的前桌，陈默。那个总是穿着洗得发白的校服，沉默得像空气一样的男生。<br/>
+                            他总是最早一个到教室开窗，最晚一个离开关灯。
+                        </p>
+                        <p className="text-lg leading-loose">
+                            但今天，早读课的铃声响了很久，他的座位依然空荡荡的。<br/>
+                            没有请假条，没有消息，就像水蒸气一样，在这个平凡的早晨彻底蒸发了。<br/>
+                            我趁老师不注意，伸手探向他的桌洞。里面只有一张撕下来的便利贴，上面写着一串潦草的网址：
+                        </p>
+                        <div className="bg-white p-6 shadow-lg transform rotate-1 border border-stone-300 text-center cursor-pointer hover:scale-105 transition group" onClick={onEnter}>
+                            <p className="font-mono text-2xl tracking-widest border-b-2 border-dashed border-gray-400 inline-block pb-1 mb-2 group-hover:text-blue-700">chenmo-space.top</p>
+                            <p className="text-xs text-gray-400 mt-2">(点击进入回忆)</p>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- 2. 404 页面 ---
+        const NotFoundPage = ({ navigate }) => (
+            <div className="h-full min-h-screen w-full flex flex-col items-center justify-center bg-white text-center p-8">
+                <div className="flex-1 flex flex-col justify-center items-center w-full">
+                    <h1 className="text-9xl font-bold text-gray-200 mb-4 select-none">404</h1>
+                    <h2 className="text-3xl font-bold text-gray-700 mb-2">Site Not Found</h2>
+                    <p className="text-gray-500 mb-12 font-mono text-sm">
+                        The URL <span className="bg-gray-100 px-2 text-red-500">/chenmo-space.top</span> is unreachable.<br/>
+                        Server Response: Account Inactive since 2023.
+                    </p>
+                    <div className="border-t border-gray-200 pt-8 w-full max-w-md">
+                        <div className="flex items-center justify-between bg-gray-50 p-4 rounded border border-gray-300">
+                            <div className="text-left">
+                                <p className="font-bold text-sm text-gray-800">Wayback Machine Archive</p>
+                                <p className="text-xs text-gray-500">Found 1 snapshot (Oct 24, 2023)</p>
+                            </div>
+                            <button onClick={() => navigate("wayback.html")} className="bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold hover:bg-blue-700 transition">
+                                恢复存档
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
+        );
 
-            <div class="clue-card">
-                <div class="clue-title">线索二：和同学闹矛盾？</div>
-                <p>同桌的练习本夹着一张打印出来的聊天记录，有几行被荧光笔画了出来：</p>
-                <p>“算了，当我没朋友吧。”</p>
-                <div class="fake-photo">（这里可以放一张：<br>“模糊的手机聊天截屏”的图片）</div>
-                <div class="keyword-tip">
-                    可以试试：<span>群聊</span><span>聊天</span><span>朋友</span>
+        // --- 3. 搜索无结果页面 ---
+        const NoResultPage = ({ term, navigate }) => {
+            let hint = "";
+            if (term === "broad") {
+                hint = "提示：光影是欺骗视觉的艺术。只有在电压不稳、光影变化时，真正的信号才会显现。";
+            }
+            
+            return (
+                <div className="h-full bg-[#111] text-gray-400 font-mono p-8 flex flex-col items-center justify-center">
+                    <div className="border border-red-900 bg-red-900/10 p-8 max-w-md w-full text-center">
+                        <h2 className="text-red-500 text-2xl font-bold mb-4">ERROR: 404</h2>
+                        <p className="mb-4">记忆碎片未找到: <span className="text-white border-b border-gray-500">"{term}"</span></p>
+                        {hint && <div className="mt-4 p-4 bg-yellow-900/20 text-yellow-500 text-sm border border-yellow-700">{hint}</div>}
+                        <p className="text-xs text-gray-500 mt-8 mb-8">
+                            The requested memory fragment is either corrupted or does not exist in the current timeline.
+                        </p>
+                        <button onClick={() => navigate("index.html")} className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-sm">
+                            返回主页
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- 3.5 空界面 (搜索陈默) ---
+        const EmptySpace = ({ navigate }) => (
+            <div className="h-full bg-white flex flex-col items-center justify-center cursor-none">
+                <div className="w-2 h-12 bg-black animate-pulse"></div>
+                <div className="absolute bottom-10 text-xs text-gray-300 font-mono">nothing here but silence</div>
+                <button onClick={() => navigate("index.html")} className="absolute top-4 left-4 text-gray-400 hover:text-black">←</button>
+            </div>
+        );
+
+        // --- 4. 博客主页 (核心枢纽 - 全屏无黑边) ---
+        const BlogIndex = ({ navigate, onLogin }) => {
+            const [search, setSearch] = useState("");
+            const [searching, setSearching] = useState(false);
+            const [account, setAccount] = useState("");
+            const [password, setPassword] = useState("");
+
+            const handleSearch = (e) => {
+                e.preventDefault();
+                const term = search.trim().toLowerCase();
+                setSearching(true);
+                
+                setTimeout(() => {
+                    setSearching(false);
+                    if (["数学", "试卷", "58", "58分", "math"].some(k => term.includes(k))) {
+                        navigate("math.html");
+                    } else if (["工牌", "名片", "工作证", "badge", "card"].some(k => term.includes(k))) {
+                        navigate("badge.html");
+                    } else if (["图书馆", "书", "library"].some(k => term.includes(k))) {
+                        navigate("library.html");
+                    } else if (["美术", "art", "雕塑"].some(k => term.includes(k))) {
+                        navigate("art.html");
+                    } else if (["broad", "broadcast", "broad cast", "广播"].some(k => term.includes(k))) {
+                        if (term.includes("cast") || term.includes("广播") || term.includes("cast")) navigate("radio.html");
+                        else navigate("no_result:broad");
+                    } else if (["门禁", "access", "entry"].some(k => term.includes(k))) {
+                        navigate("smarthome.html");
+                    } else if (["class", "班级", "群", "chat"].some(k => term.includes(k))) {
+                        navigate("class.html");
+                    } else if (["朋友圈", "moments", "动态"].some(k => term.includes(k))) {
+                        navigate("moments.html"); // 独立跳转
+                    } else if (["云盘", "cloud"].some(k => term.includes(k))) {
+                        navigate("cloud.html");
+                    } else if (["qq", "zone", "空间"].some(k => term.includes(k))) {
+                        navigate("qqzone.html");
+                    } else if (["陈建国", "爸爸", "父亲", "father"].some(k => term.includes(k))) {
+                        navigate("father_chat.html");
+                    } else if (["邮件", "信", "email"].some(k => term.includes(k))) {
+                        navigate("email.html");
+                    } else if (["陈默", "chenmo", "me"].some(k => term.includes(k))) {
+                        navigate("empty.html");
+                    } else {
+                        navigate(`no_result:${term}`);
+                    }
+                }, 800);
+            };
+
+            const handleLogin = () => {
+                // 账号：学号 20210904
+                // 密码：完整生日 20101105
+                if (account === "20210904") {
+                    if (password === "20101105") {
+                        onLogin();
+                    } else if (password === "1105") {
+                        alert("提示：\n初始密码为完整生日 (YYYYMMDD)\n(线索：2023年我是八年级)");
+                    } else {
+                        alert("登录失败。");
+                    }
+                } else {
+                    alert("登录失败。");
+                }
+            };
+
+            const forgotPassword = () => {
+                alert("系统提示：\n默认账号：用户学号\n默认密码：用户生日");
+            };
+
+            return (
+                <div className="h-full w-full bg-[#f0f2f5] overflow-y-auto text-black font-sans">
+                    <div className="bg-white shadow-sm sticky top-0 z-20">
+                        <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
+                            <div className="flex items-center space-x-4">
+                                <div className="text-2xl font-black tracking-tighter cursor-pointer" onClick={()=>navigate("index.html")}>CM's ZONE</div>
+                            </div>
+                            <form onSubmit={handleSearch} className="relative flex items-center">
+                                <input 
+                                    type="text" 
+                                    placeholder="搜索记忆关键词..." 
+                                    className="bg-gray-100 rounded-full px-4 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 w-40 transition-all focus:w-64 disabled:opacity-50"
+                                    value={search}
+                                    onChange={e => setSearch(e.target.value)}
+                                    disabled={searching}
+                                />
+                                <button type="submit" className="absolute right-3 top-1.5 text-gray-400 text-xs hover:text-blue-500">
+                                    {searching ? "..." : "🔍"}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div className="max-w-4xl mx-auto p-4 sm:p-6 flex flex-col sm:flex-row gap-6">
+                        {/* 侧边栏：登录框 */}
+                        <div className="w-full sm:w-1/3 space-y-6 order-2 sm:order-1">
+                            <div className="bg-white p-6 rounded shadow-sm text-center">
+                                <div className="w-20 h-20 bg-gray-200 rounded-full mx-auto mb-3 overflow-hidden border-2 border-gray-100">
+                                    <div className="w-full h-full bg-stone-300 flex items-center justify-center text-3xl">🌌</div>
+                                </div>
+                                <h3 className="font-bold mb-4">Silence</h3>
+                                
+                                <div className="text-left space-y-3 border-t pt-4">
+                                    <p className="text-xs text-gray-400 font-bold">博主登录</p>
+                                    <input className="w-full border p-2 text-sm bg-gray-50" placeholder="账号 (Account)" value={account} onChange={e=>setAccount(e.target.value)}/>
+                                    <input className="w-full border p-2 text-sm bg-gray-50" type="password" placeholder="密码 (Password)" value={password} onChange={e=>setPassword(e.target.value)}/>
+                                    <button onClick={handleLogin} className="w-full bg-black text-white py-2 text-sm hover:bg-gray-800 transition">登录</button>
+                                    <div className="text-center">
+                                        <button onClick={forgotPassword} className="text-xs text-blue-500 hover:underline mt-2">
+                                            忘记密码?
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 文章流 */}
+                        <div className="w-full sm:w-2/3 space-y-6 order-1 sm:order-2">
+                            {/* 置顶博文 */}
+                            <div className="bg-white p-6 rounded shadow-sm border-t-4 border-black relative overflow-hidden">
+                                <div className="text-xs text-gray-400 mb-2">2023.10.24 [置顶]</div>
+                                <h2 className="text-xl font-bold mb-2">最后一天</h2>
+                                <p className="text-gray-600 text-sm leading-relaxed">
+                                    我把我的世界切成了两半。<br/>
+                                    一半是所谓的港湾，但我只感到冰冷。<br/>
+                                    另一半是所谓的殿堂，但我只觉得像个笼子。<br/>
+                                    <br/>
+                                    再见了。
+                                </p>
+                            </div>
+
+                             {/* 博文 1：学校线入口 */}
+                            <div className="bg-white p-6 rounded shadow-sm">
+                                <div className="text-xs text-gray-400 mb-2">2023.10.22</div>
+                                <h2 className="text-lg font-bold mb-2">红色的叉</h2>
+                                <p className="text-gray-600 text-sm leading-relaxed">
+                                    又是那个鲜红的数字。58。<br/>
+                                    老师把试卷扔给我的时候，全班都在看。<br/>
+                                    我把它揉成一团塞进了书包最底层。<br/>
+                                    如果可以，我真想把那张<span className="bg-yellow-100 px-1">数学试卷</span>烧成灰。
+                                </p>
+                            </div>
+
+                            {/* 博文 2：家庭线入口 */}
+                            <div className="bg-white p-6 rounded shadow-sm">
+                                <div className="text-xs text-gray-400 mb-2">2023.10.21</div>
+                                <h2 className="text-lg font-bold mb-2">缺席</h2>
+                                <p className="text-gray-600 text-sm leading-relaxed">
+                                    今天他又不回家吃饭。<br/>
+                                    也是，对他来说，那个挂着蓝色挂绳的<span className="bg-blue-100 px-1">工牌</span>比这个家重要多了。<br/>
+                                    他甚至走得太急，把工牌都落在玄关的柜子上了。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- 物品：数学试卷 ---
+        const MathPaper = () => {
+            const [flipped, setFlipped] = useState(false);
+            return (
+                <div className="w-full h-full bg-stone-200 p-4 flex justify-center overflow-y-auto items-center">
+                    <div className="relative w-[600px] h-[800px] perspective-1000">
+                        <div className={`relative w-full h-full transition-transform duration-700 transform-style-3d shadow-2xl ${flipped ? 'rotate-y-180' : ''}`} onClick={() => setFlipped(!flipped)}>
+                            {/* 正面 */}
+                            <div className="absolute w-full h-full bg-white p-10 backface-hidden paper-texture text-black border border-gray-300 cursor-pointer overflow-hidden">
+                                <div className="flex justify-between border-b-2 border-black pb-4 mb-8">
+                                    <div><h1 className="text-xl font-serif font-bold">八年级期中测试 - 数学</h1><p className="mt-1">班级：9班 / 姓名：陈默</p></div>
+                                    <div className="text-7xl font-hand text-red-600 rotate-[-12deg] font-bold opacity-90">58</div>
+                                </div>
+                                <div className="space-y-6 font-serif text-base relative">
+                                    {/* 模糊的题目 */}
+                                    <div className="opacity-40 blur-[1px] space-y-4 select-none">
+                                        <p>1. 计算 √(12) + √(27) 的结果...</p>
+                                        <p>2. 已知 x = √3 + 1, 求 x² - 2x...</p>
+                                        <p>3. 二次根式 √(a-1) 有意义的条件...</p>
+                                        <p>4. 化简: 1/(√2 + 1) ...</p>
+                                        <p>5. 已知x1，x2，求x1^2+x2^2 的值 ...</p>
+                                        <p>6. 已知a+b=﹣8，ab=6，则的值为 ...</p>
+                                        <p>7. 已知：x=2，y=2，求下列各式的值 ...</p>
+                                        <p>...</p>
+                                    </div>
+                                    <div className="p-3 bg-red-50 text-red-800 text-sm border-l-4 border-red-800 relative z-10 transform rotate-1">
+                                        <span className="font-bold">老师批语：</span> 心思完全不在课堂上！天天往<span className="font-bold text-lg underline">图书馆</span>里跑！
+                                    </div>
+                                </div>
+                                <div className="absolute bottom-4 w-full text-center text-gray-400 text-xs">点击翻看背面</div>
+                            </div>
+                            {/* 背面 */}
+                            <div className="absolute w-full h-full bg-white p-10 backface-hidden rotate-y-180 paper-texture text-black border border-gray-300 cursor-pointer flex flex-col items-center justify-center">
+                                <div className="font-mono text-xl mb-8 border-2 border-dashed border-gray-400 p-6 bg-gray-50 w-full text-center">
+                                    <p className="mb-4 text-sm text-gray-500">附加题：分式运算 (未解出)</p>
+                                    <p className="font-bold text-lg leading-relaxed">
+                                        ( √(2000) - 10√(5) ) / √(4) <br/> 
+                                        + | -1000 | - 30 + 15
+                                    </p>
+                                    <p className="text-xs text-gray-400 mt-2">（解：原式 = ?）</p>
+                                </div>
+                                <div className="text-9xl font-black text-red-600 opacity-20 select-none">?</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- 学校线 2：图书馆 ---
+        const Library = () => {
+            const [query, setQuery] = useState("");
+            const [msg, setMsg] = useState(null);
+            
+            const search = (e) => {
+                e.preventDefault();
+                if (query === "985") {
+                    setMsg({ type: "success", text: "检索到书籍：《视觉欺骗艺术》。借阅状态：遗失。备注：书中关于'光影与错觉'的插图被撕下来了，似乎有人把它贴在了美术教室的雕塑上。" });
+                } else {
+                    setMsg({ type: "error", text: "未找到该索书号。" });
+                }
+            };
+            return (
+                <div className="h-full bg-slate-50 p-8 flex flex-col items-center font-sans">
+                     <div className="w-full max-w-lg bg-white shadow-lg p-8 mt-10">
+                        <h1 className="text-2xl font-bold text-blue-900 border-b pb-4 mb-6">图书馆检索终端</h1>
+                        <form onSubmit={search} className="space-y-4">
+                            <input className="w-full border p-2" placeholder="输入索书号 (数学试卷答案)..." value={query} onChange={e=>setQuery(e.target.value)}/>
+                            <button className="bg-blue-900 text-white px-4 py-2 w-full">查询</button>
+                        </form>
+                        {msg && <div className={`mt-4 p-4 ${msg.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{msg.text}</div>}
+                     </div>
+                </div>
+            );
+        };
+
+        // --- 学校线 3：美术教室 (X:50, Y:180, Z:100) ---
+        const ArtRoom = ({ isGlitching }) => {
+            const [rx, setRx] = useState(0); 
+            const [ry, setRy] = useState(0); 
+            const [rz, setRz] = useState(0); 
+            const [fog, setFog] = useState(1);
+            const [unlocked, setUnlocked] = useState(false);
+
+            useEffect(() => {
+                // Target: 10, 180, 100
+                const dist = Math.sqrt(Math.pow(rx-50, 2) + Math.pow(ry-180, 2) + Math.pow(rz-100, 2));
+                // 白雾机制：距离越近，雾越淡
+                const opacity = Math.min(1, Math.max(0, (dist - 20) / 200)); 
+                setFog(opacity);
+
+                if (dist < 25) setUnlocked(true);
+                else setUnlocked(false);
+            }, [rx, ry, rz]);
+
+            return (
+                <div className="h-full bg-gray-900 text-gray-300 flex flex-col items-center justify-center p-8 relative overflow-hidden">
+                    {/* 动态白雾层 */}
+                    <div className="absolute inset-0 bg-white transition-opacity duration-500 pointer-events-none z-20" style={{opacity: fog}}></div>
+                    
+                    <h1 className="text-2xl font-serif text-white mb-8 z-10">美术教室：迷雾</h1>
+                    
+                    <div className="perspective-1000 w-64 h-64 mb-8 border border-gray-700 bg-black relative z-0">
+                        <div className="w-full h-full relative transform-style-3d transition-transform duration-200" style={{ transform: `rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(${rz}deg)` }}>
+                            
+                            {/* BROAD (Center) */}
+                            {/* 初始歪斜逻辑：文字本身带有反向变换，只有当容器旋转到特定角度(100,180,100)时，文字才会看起来是正的 */}
+                            {/* 为了简化实现，我们直接设定文字的 transform 是固定的，而外层容器旋转去抵消它是不太直观的数学计算。*/}
+                            {/* 更好的方式：文字是正的，但是初始 rx, ry, rz 偏离目标值。*/}
+                            {/* 按照需求：“broad的本身的位置是倾斜歪的，而不是默认在摆正的位置”。这通常意味着默认状态(0,0,0)下它看起来是歪的。*/}
+                            {/* 在当前逻辑中，文字是正对着 Z 轴平面的。如果 rx=0, ry=0, rz=0，它就是正的。*/}
+                            {/* 所以我们需要给文字加一个初始的歪斜变换。*/}
+                            <div className="absolute inset-0 flex items-center justify-center text-5xl font-black text-cyan-400 backface-visible" 
+                                 style={{transform: 'rotateX(-50deg) rotateY(-180deg) rotateZ(-100deg) translateZ(20px)'}}>
+                                BROAD
+                            </div>
+
+                            {/* CAST (Right side, only on glitch) */}
+                            {isGlitching && (
+                                <div className="absolute inset-0 flex items-center justify-center text-5xl font-black text-red-500 backface-visible animate-pulse" 
+                                     style={{transform: 'translateX(120px) translateZ(20px)'}}>
+                                    CAST
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="space-y-4 w-64 z-30 bg-gray-900/80 p-4 rounded backdrop-blur-sm border border-gray-700">
+                        <div className="flex justify-between text-xs"><span>X</span><span>{rx}°</span></div>
+                        <input type="range" min="0" max="360" value={rx} onChange={e=>setRx(Number(e.target.value))} className="w-full h-1 bg-gray-600 appearance-none rounded"/>
+                        <div className="flex justify-between text-xs"><span>Y</span><span>{ry}°</span></div>
+                        <input type="range" min="0" max="360" value={ry} onChange={e=>setRy(Number(e.target.value))} className="w-full h-1 bg-gray-600 appearance-none rounded"/>
+                        <div className="flex justify-between text-xs"><span>Z</span><span>{rz}°</span></div>
+                        <input type="range" min="0" max="360" value={rz} onChange={e=>setRz(Number(e.target.value))} className="w-full h-1 bg-gray-600 appearance-none rounded"/>
+                    </div>
+                    
+                    <div className="mt-8 text-xs text-gray-500 z-30 max-w-xs text-center">
+                        提示：在迷雾中寻找正确的角度。答案会在光影异变(Glitch)时完整显现。
+                    </div>
+                </div>
+            );
+        };
+
+        // --- 学校线 4：广播室 ---
+        const MorsePuzzle = () => {
+            const [step, setStep] = useState(0); 
+            const [finished, setFinished] = useState(false);
+            const letters = [
+                { char: 'C', code: [3, 1, 3, 1] }, 
+                { char: 'L', code: [1, 3, 1, 1] },
+                { char: 'A', code: [1, 3] },
+                { char: 'S', code: [1, 1, 1] },
+                { char: 'S', code: [1, 1, 1] }
+            ];
+
+            const playCurrent = async () => {
+                const seq = letters[step].code;
+                for (let type of seq) {
+                    window.playTone(type * 0.1);
+                    await new Promise(r => setTimeout(r, type * 100 + 200));
+                }
+            };
+
+            const next = () => {
+                if (step < 4) setStep(step + 1);
+                else setFinished(true);
+            };
+
+            return (
+                <div className="h-full bg-black text-green-600 font-mono flex flex-col items-center justify-center p-8">
+                    <div className="border border-green-800 p-8 w-full max-w-md bg-stone-900 relative">
+                        <h2 className="text-xl mb-4 border-b border-green-800 pb-2">广播设备 (Broadcasting)</h2>
+                        {!finished ? (
+                            <div className="text-center space-y-6">
+                                <div className="text-4xl font-bold mb-4 text-green-500">
+                                    Letter {step + 1} / 5
+                                </div>
+                                <div className="flex justify-center gap-4">
+                                    <button onClick={playCurrent} className="bg-green-900 text-green-100 px-6 py-3 rounded hover:bg-green-800">
+                                        ▶ 听音
+                                    </button>
+                                    <button onClick={next} className="border border-green-600 px-6 py-3 hover:bg-green-900/30">
+                                        下一个 →
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="animate-fade-in space-y-4">
+                                <p className="text-green-400">解码完成: <span className="font-bold text-xl">CLASS</span></p>
+                                <div className="bg-black p-4 border border-green-700 text-sm">
+                                    <p className="text-gray-400 mb-2">[陈默的录音留言]</p>
+                                    <p>我听不懂他们的语言。</p>
+                                    <p>去搜索 <span className="text-white font-bold bg-green-900 px-1">CLASS</span> 吧。</p>
+                                    <p>那里有我的座位号，但我不知道我还属于不属于那里。</p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- 学校线 5：班级群 (独立) ---
+        const ClassChat = ({navigate}) => {
+            return (
+                <div className="h-full bg-[#f2f2f2] flex justify-center text-black font-sans overflow-hidden">
+                    <div className="w-full max-w-md bg-white shadow-xl h-full flex flex-col">
+                        <div className="bg-[#ededed] p-4 font-bold border-b">初二(09)班 (45人)</div>
+                        <div className="flex-1 p-4 space-y-6 overflow-y-auto bg-[#f5f5f5]">
+                            {/* 置顶公告 */}
+                            <div className="bg-yellow-50 p-3 border-b border-yellow-200 text-xs text-gray-700">
+                                <p className="font-bold text-yellow-800 mb-1">【教务处通知】学籍核对</p>
+                                <p>学号格式统一为：<span className="font-bold text-red-600">入学年份 + 班级号(两位) + 座号(两位)</span>。</p>
+                                <p>例：20200101。请各位同学自查。</p>
+                            </div>
+
+                            <div className="text-center text-xs text-gray-400">2023年10月24日</div>
+                            
+                            <div className="flex mb-2">
+                                <div className="w-8 h-8 bg-blue-500 rounded mr-2"></div>
+                                <div>
+                                    <span className="text-xs text-gray-500">班主任</span>
+                                    <div className="bg-white border p-2 rounded text-sm shadow-sm">
+                                        陈默没来吗？谁知道他去哪了？
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="flex mb-2">
+                                <div className="w-8 h-8 bg-yellow-500 rounded mr-2"></div>
+                                <div>
+                                    <span className="text-xs text-gray-500">李子豪</span>
+                                    <div className="bg-white border p-2 rounded text-sm shadow-sm">
+                                        不知道，他位置一直是空的。<span className="font-bold">09班04号</span>座位，空着也挺好，省得看着心烦。
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="flex mb-2">
+                                <div className="w-8 h-8 bg-pink-500 rounded mr-2"></div>
+                                <div>
+                                    <span className="text-xs text-gray-500">王佳佳</span>
+                                    <div className="bg-white border p-2 rounded text-sm shadow-sm">
+                                        他好久没更新QQ空间了。
+                                        <br/>
+                                        <button onClick={() => navigate("qqzone.html")} className="text-blue-500 underline mt-1">
+                                            >> 点击查看陈默的QQ空间
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- 学校线 5.5：朋友圈 (独立) ---
+        const Moments = () => {
+            return (
+                <div className="h-full bg-[#f2f2f2] flex justify-center text-black font-sans overflow-hidden">
+                    <div className="w-full max-w-md bg-white shadow-xl h-full flex flex-col">
+                        <div className="flex-1 p-4 space-y-6 overflow-y-auto bg-white">
+                            <div className="h-32 bg-gray-800 mb-6 relative">
+                                <div className="absolute bottom-[-20px] right-4 flex items-end">
+                                    <div className="text-white font-bold mr-4 mb-6">朋友圈</div>
+                                    <div className="w-16 h-16 bg-gray-200 border-2 border-white"></div>
+                                </div>
+                            </div>
+
+                            {/* 关键线索：陈默的生日朋友圈 */}
+                            <div className="border-b pb-4 opacity-60">
+                                <div className="flex gap-2 mb-2">
+                                    <div className="w-10 h-10 bg-gray-300 rounded"></div>
+                                    <div>
+                                        <p className="text-blue-800 font-bold text-sm">陈默</p>
+                                        <p className="text-xs text-gray-500">11月5日</p>
+                                    </div>
+                                </div>
+                                <p className="text-sm mb-2">祝我生日快乐。🔒 (仅家人可见)</p>
+                            </div>
+
+                            {/* 妈妈的朋友圈 */}
+                            <div className="border-b pb-4">
+                                <div className="flex gap-2 mb-2">
+                                    <div className="w-10 h-10 bg-red-800 rounded"></div>
+                                    <div>
+                                        <p className="text-blue-800 font-bold text-sm">妈妈</p>
+                                        <p className="text-xs text-gray-500">11月5日</p>
+                                    </div>
+                                </div>
+                                <p className="text-sm mb-2">人生没有白走的路，每一步都算数。只要努力，就能看到彩虹。转发：[深度好文]《哈佛女孩的养成日记》</p>
+                            </div>
+
+                            {/* 爸爸的朋友圈 */}
+                            <div className="border-b pb-4">
+                                <div className="flex gap-2 mb-2">
+                                    <div className="w-10 h-10 bg-gray-800 rounded"></div>
+                                    <div>
+                                        <p className="text-blue-800 font-bold text-sm">陈建国</p>
+                                        <p className="text-xs text-gray-500">11月5日</p>
+                                    </div>
+                                </div>
+                                <p className="text-sm mb-2">项目第二阶段顺利上线。团队通宵了三个晚上，辛苦了。#DeepTech #WorkLife</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- 学校线 6：QQ空间 (获取年份) ---
+        const QQZone = () => (
+             <div className="h-full bg-yellow-50 overflow-y-auto text-black font-sans p-4 flex flex-col items-center">
+                 <div className="w-full max-w-md bg-white border shadow-md min-h-[600px]">
+                     <div className="h-32 bg-gray-800 relative">
+                         <div className="absolute bottom-[-20px] left-4 w-16 h-16 bg-white p-1 rounded">
+                             <div className="w-full h-full bg-gray-300"></div>
+                         </div>
+                         <div className="absolute bottom-2 right-4 text-white text-sm">陈默的星空</div>
+                     </div>
+                     <div className="mt-8 px-4">
+                         <h2 className="font-bold border-b pb-2">说说 (1)</h2>
+                         <div className="mt-4 pb-4 border-b border-gray-100">
+                             <p className="text-sm">终于入学了。新的开始。</p>
+                             <p className="text-xs text-gray-400 mt-2">2021年9月1日</p>
+                         </div>
+
+                         <h2 className="font-bold border-b pb-2 mt-8">好友动态</h2>
+                         <div className="mt-4 space-y-6">
+                             <div className="flex gap-3">
+                                 <div className="w-8 h-8 bg-blue-200 rounded-full flex-shrink-0"></div>
+                                 <div>
+                                     <p className="text-xs font-bold text-blue-800">学委_张浩</p>
+                                     <p className="text-sm mt-1">这次数学太简单了，98分，随便考考。有些人连及格都难，真不知道怎么进来的。</p>
+                                     <p className="text-xs text-gray-400 mt-1">10分钟前</p>
+                                 </div>
+                             </div>
+                             <div className="flex gap-3">
+                                 <div className="w-8 h-8 bg-green-200 rounded-full flex-shrink-0"></div>
+                                 <div>
+                                     <p className="text-xs font-bold text-green-800">体育委员</p>
+                                     <p className="text-sm mt-1">新买的AJ，帅不帅？周末球场见！</p>
+                                     <p className="text-xs text-gray-400 mt-1">30分钟前</p>
+                                 </div>
+                             </div>
+                             <div className="flex gap-3">
+                                 <div className="w-8 h-8 bg-purple-200 rounded-full flex-shrink-0"></div>
+                                 <div>
+                                     <p className="text-xs font-bold text-purple-800">班长</p>
+                                     <p className="text-sm mt-1">班级大合照来啦！大家都笑得好开心！(某人又躲在角落里没拍进去哈哈)</p>
+                                     <p className="text-xs text-gray-400 mt-1">1小时前</p>
+                                 </div>
+                             </div>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+        );
+
+        // --- 家庭线 1：工牌 ---
+        const WorkBadge = () => {
+            const [flipped, setFlipped] = useState(false);
+            return (
+                <div className="w-full h-full bg-stone-800 p-4 flex justify-center items-center">
+                    <div className="relative w-[300px] h-[500px] perspective-1000">
+                        <div className={`relative w-full h-full transition-transform duration-700 transform-style-3d shadow-2xl ${flipped ? 'rotate-y-180' : ''}`} onClick={() => setFlipped(!flipped)}>
+                            {/* 正面 */}
+                            <div className="absolute w-full h-full bg-white rounded-xl backface-hidden flex flex-col items-center pt-12 shadow-inner border border-gray-300 cursor-pointer overflow-hidden">
+                                <div className="w-full h-4 bg-blue-800 absolute top-4"></div>
+                                <div className="w-32 h-40 bg-gray-200 border border-gray-300 mb-6 flex items-center justify-center">
+                                    <span className="text-4xl grayscale">👤</span>
+                                </div>
+                                <h2 className="text-2xl font-bold text-gray-800 mb-1">陈建国</h2>
+                                <p className="text-gray-500 mb-8">高级系统工程师</p>
+                                <div className="absolute bottom-4 text-xs text-gray-400">点击查看背面</div>
+                            </div>
+                            {/* 背面 */}
+                            <div className="absolute w-full h-full bg-gray-100 rounded-xl backface-hidden rotate-y-180 flex flex-col items-center justify-center border border-gray-300 cursor-pointer shadow-inner">
+                                <div className="w-full h-12 bg-black mb-12"></div>
+                                <div className="text-left w-3/4 space-y-4">
+                                    <div className="text-xs text-gray-300">
+                                        联系邮箱:<br/>
+                                        **********@corp.com
+                                    </div>
+                                    <p className="font-bold text-lg text-gray-800 mt-8">门禁卡</p>
+                                    <p className="text-xs text-gray-500">Access Control Card</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- 家庭线 2：门禁 (SmartHome) ---
+        const SmartHome = () => {
+            const [showHint, setShowHint] = useState(false);
+            return (
+             <div className="h-full bg-gray-900 text-green-400 font-mono p-8 overflow-y-auto">
+                    <div className="max-w-2xl mx-auto border border-green-800 p-6 shadow-lg">
+                        <h2 className="text-xl border-b border-green-800 pb-2 mb-4">门禁系统日志 (Access Log)</h2>
+                        <div className="space-y-4 text-sm">
+                            <div className="grid grid-cols-3 text-red-500"><span>10-01 ~ 10-24</span><span>爸爸</span><span>无记录 (未归)</span></div>
+                            
+                            {!showHint ? (
+                                <button onClick={() => setShowHint(true)} className="mt-4 text-xs text-yellow-500 underline hover:text-yellow-400">
+                                    [忘记密码?]
+                                </button>
+                            ) : (
+                                <div className="mt-4 p-4 bg-black border border-green-900 text-xs animate-fade-in">
+                                    <p className="text-white font-bold mb-2">[系统提示]</p>
+                                    <p>密码提示已发送至陈建国先生的云盘。</p>
+                                    <p>云盘登录规则：<span className="text-yellow-500">完整邮箱</span> + <span className="text-yellow-500">他最看重的东西(英文)</span>。</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- 家庭线 3：父亲聊天 (获取邮箱和密码线索) ---
+        const FatherChat = () => {
+            const [msgs, setMsgs] = useState([]);
+            const [input, setInput] = useState("");
+
+            const send = (e) => {
+                e.preventDefault();
+                if(!input.trim()) return;
+                const newMsgs = [...msgs, {role: 'me', text: input}];
+                setMsgs(newMsgs);
+                setInput("");
+                
+                setTimeout(() => {
+                    setMsgs(prev => [...prev, {role: 'dad', text: '[自动回复] 我在忙工作(WORK)，有事发邮件到 chen_work@corp.com，回家再说。'}]);
+                }, 1000);
+            };
+
+            return (
+                <div className="h-full bg-gray-100 flex flex-col items-center p-4">
+                    <div className="w-full max-w-md bg-white shadow-xl h-[600px] flex flex-col border border-gray-300">
+                        <div className="bg-gray-800 text-white p-4 flex justify-between items-center">
+                            <span>陈建国 (爸爸)</span>
+                            <span className="text-xs opacity-50">离线</span>
+                        </div>
+                        <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-gray-50">
+                            <div className="text-center text-xs text-gray-300 my-4">2023年10月20日</div>
+                            {msgs.map((m, i) => (
+                                <div key={i} className={`flex ${m.role === 'me' ? 'justify-end' : 'justify-start'}`}>
+                                    <div className={`p-3 rounded-lg max-w-[80%] text-sm ${m.role === 'me' ? 'bg-green-500 text-white' : 'bg-white border shadow-sm text-gray-800'}`}>
+                                        {m.text}
+                                    </div>
+                                </div>
+                            ))}
+                            {msgs.length === 0 && <div className="text-center text-gray-400 text-xs mt-10">你已经很久没和爸爸说话了...</div>}
+                        </div>
+                        <form onSubmit={send} className="p-3 border-t bg-white flex gap-2">
+                            <input className="flex-1 border p-2 text-sm rounded bg-gray-100" placeholder="发送消息..." value={input} onChange={e=>setInput(e.target.value)}/>
+                            <button className="bg-green-600 text-white px-4 text-sm rounded font-bold">发送</button>
+                        </form>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- 家庭线 4：云盘 ---
+        const Cloud = () => {
+            const [email, setEmail] = useState("");
+            const [pass, setPass] = useState("");
+            const [unlocked, setUnlocked] = useState(false);
+            const [tab, setTab] = useState("files");
+            
+            const check = () => {
+                // Email: chen_work@corp.com
+                // Pass: WORK (case insensitive)
+                if (email === "chen_work@corp.com" && pass.toUpperCase() === "WORK") {
+                    setUnlocked(true);
+                } else {
+                    alert("登录失败。");
+                }
+            };
+
+            if (unlocked) return (
+                <div className="h-full bg-white p-8 font-sans">
+                     <div className="max-w-2xl mx-auto">
+                        <h1 className="text-2xl font-bold mb-6 text-blue-800">我的云盘</h1>
+                        <div className="flex space-x-4 border-b mb-4">
+                            <button onClick={()=>setTab('files')} className={`pb-2 ${tab==='files'?'border-b-2 border-blue-500 font-bold':''}`}>文件列表</button>
+                            <button onClick={()=>setTab('letter')} className={`pb-2 ${tab==='letter'?'border-b-2 border-blue-500 font-bold':''}`}>未读信件</button>
+                        </div>
+
+                        {tab === 'files' && (
+                            <div className="space-y-4">
+                                <div className="p-4 border bg-gray-50 flex items-center"><span className="mr-2">📄</span> 工作日报_2023.xlsx</div>
+                                <div className="p-4 border bg-gray-50 flex items-center"><span className="mr-2">🔑</span> 门禁密码备份.txt</div>
+                                <div className="p-4 border bg-gray-50 flex items-center"><span className="mr-2">✉️</span> 来自儿子的信.pdf (已自动归档)</div>
+                            </div>
+                        )}
+
+                        {tab === 'letter' && (
+                            <div className="border p-6 bg-yellow-50 shadow-sm relative group perspective-1000">
+                                <div className="space-y-4">
+                                    <h3 className="font-bold">致爸爸</h3>
+                                    <p className="text-sm text-gray-700">爸，我知道你很忙。我在学校很好（假的）。我不想上学了。</p>
+                                    <p className="text-sm text-gray-700">今天是我的生日，但你又不在。</p>
+                                    <p className="text-sm text-blue-700 font-bold mt-4">爸爸，今天生日我发了朋友圈你看到了吗？</p>
+                                </div>
+                            </div>
+                        )}
+                     </div>
+                </div>
+            );
+
+            return (
+                <div className="h-full bg-gray-100 flex items-center justify-center">
+                    <div className="bg-white p-8 shadow rounded w-80 text-center">
+                        <h2 className="mb-4 font-bold">云盘登录</h2>
+                        <input className="border w-full p-2 mb-2" placeholder="邮箱" value={email} onChange={e=>setEmail(e.target.value)}/>
+                        <input className="border w-full p-2 mb-4" type="password" placeholder="密码 (他最看重的东西)" value={pass} onChange={e=>setPass(e.target.value)}/>
+                        <button onClick={check} className="bg-blue-600 text-white w-full py-2 rounded">登录</button>
+                    </div>
+                </div>
+            );
+        };
+        
+        // --- 邮件场景 ---
+        const EmailDrafts = () => (
+             <div className="h-full bg-white p-8 font-sans">
+                <div className="max-w-2xl mx-auto border h-full bg-gray-50 p-6">
+                    <h2 className="font-bold text-gray-700 border-b pb-2 mb-4">邮件</h2>
+                    <p className="text-sm">发件人：陈默</p>
+                    <p className="text-sm text-gray-500 mb-4">日期：2023-11-05</p>
+                    <p className="text-sm">生日快乐，陈默。</p>
                 </div>
             </div>
+        );
 
-            <div class="clue-card">
-                <div class="clue-title">线索三：家里出了问题？</div>
-                <p>他的手机壳里夹着一张折叠的纸条，上面像是家长发来的短信，被抄了下来：</p>
-                <p>“你到底还想怎样？”</p>
-                <div class="fake-photo">（这里可以放一张：<br>“家长短信截图”的图片）</div>
-                <div class="keyword-tip">
-                    也许可以搜索：<span>家长</span><span>短信</span><span>吵架</span>
+        // --- 结局 ---
+        const Ending = () => {
+            const [scene, setScene] = useState(0);
+            const dialogs = [
+                "登录成功。正在定位...",
+                "定位坐标：学校旧教学楼 - 顶层天文活动室。",
+                "【2023年10月24日，下午】",
+                "你推开了活动室那扇生锈的铁门。",
+                "陈默正坐在角落里，戴着耳机，手里拿着那张考了58分的试卷折成的纸飞机。",
+                "他抬起头，眼神里有一丝惊讶，但更多的是释然。",
+                "“你找到我了。” 他轻声说。",
+                "“我还以为，没有人会记得我的学号，也没有人记得我的生日。”",
+                "你向他伸出了手。",
+                "那一刻，所有的噪音、分数、争吵，都消失了。",
+                "只剩下窗外透进来的一束光。",
+                "请帮助身边的陈默们。"
+                "THE END"
+            ];
+
+            return (
+                <div className="h-full bg-black text-white flex flex-col items-center justify-center p-8 text-center animate-fade-in font-serif cursor-pointer" onClick={() => { if(scene < dialogs.length - 1) setScene(scene + 1) }}>
+                    <div className="max-w-xl text-lg leading-loose space-y-6">
+                        <p className="typewriter-text text-xl">{dialogs[scene]}</p>
+                        {scene < dialogs.length - 1 && <p className="text-xs text-gray-500 mt-8 animate-pulse">(点击继续)</p>}
+                    </div>
                 </div>
-            </div>
+            );
+        };
 
-            <div class="clue-card">
-                <div class="clue-title">线索四：学校的奇怪传闻？</div>
-                <p>在他的文件夹里，你发现一张打印出来的帖子，标题是：</p>
-                <p>《旧教学楼的晚上，到底发生过什么？》</p>
-                <div class="fake-photo">（这里可以放：<br>“旧教学楼昏暗走廊”的图片）</div>
-                <div class="keyword-tip">
-                    你可以输入：<span>旧教学楼</span><span>传闻</span><span>影子</span>
+        // --- 主控 ---
+        const App = () => {
+            const [stage, setStage] = useState("intro"); 
+            const [url, setUrl] = useState("index.html");
+            const [history, setHistory] = useState(["index.html"]);
+            const [inputUrl, setInputUrl] = useState("");
+            const [isGlitching, setIsGlitching] = useState(false);
+
+            // 负片干扰计时器：每120s触发一次，持续3-5s
+            useEffect(() => {
+                const interval = setInterval(() => {
+                    setIsGlitching(true);
+                    setTimeout(() => setIsGlitching(false), 4000); // 4s
+                }, 120000); // 120秒
+                
+                return () => clearInterval(interval);
+            }, []);
+
+            const navigate = (target) => {
+                if (target === url) return;
+                setHistory(prev => [...prev, target]);
+                setUrl(target);
+                setInputUrl("");
+            };
+
+            const goBack = () => {
+                if (history.length > 1) {
+                    const newHistory = [...history];
+                    newHistory.pop();
+                    setHistory(newHistory);
+                    setUrl(newHistory[newHistory.length - 1]);
+                }
+            };
+
+            const renderContent = () => {
+                if (url.startsWith("no_result:")) return <NoResultPage term={url.split(":")[1]} navigate={navigate} />;
+
+                switch (url) {
+                    case "index.html": return <BlogIndex navigate={navigate} onLogin={() => navigate("ending")} />;
+                    case "math.html": return <MathPaper />;
+                    case "library.html": return <Library />;
+                    case "art.html": return <ArtRoom isGlitching={isGlitching} />;
+                    case "radio.html": return <MorsePuzzle />;
+                    case "badge.html": return <WorkBadge />;
+                    case "class.html": return <ClassChat navigate={navigate} />;
+                    case "moments.html": return <Moments />; // 独立页面
+                    case "qqzone.html": return <QQZone />;
+                    case "father_chat.html": return <FatherChat />;
+                    case "smarthome.html": return <SmartHome />;
+                    case "cloud.html": return <Cloud />;
+                    case "email.html": return <EmailDrafts />;
+                    case "empty.html": return <EmptySpace navigate={navigate} />;
+                    case "ending": return <Ending />;
+                    case "wayback.html": return <BlogIndex navigate={navigate} onLogin={() => navigate("ending")} />;
+                    default: return <NotFoundPage navigate={() => setUrl("index.html")} />;
+                }
+            };
+
+            if (stage === "intro") return <RealWorldIntro onEnter={() => setStage("404")} />;
+            if (stage === "404") return <NotFoundPage navigate={(page) => setStage("wayback")} />;
+            if (stage === "wayback") return (
+                <div className="h-screen bg-white flex flex-col items-center pt-32 font-sans text-black">
+                    <h1 className="text-6xl font-bold mb-4">Wayback Machine</h1>
+                    <div className="w-full max-w-2xl px-6">
+                        <form onSubmit={(e) => { e.preventDefault(); if(inputUrl.includes("chenmo")) setStage("browser"); }} className="flex border h-16 rounded overflow-hidden shadow-lg">
+                            <input type="text" className="flex-1 p-4 text-xl outline-none" placeholder="Enter URL..." value={inputUrl} onChange={e => setInputUrl(e.target.value)}/>
+                            <button className="bg-black text-white px-8 font-bold">GO</button>
+                        </form>
+                         <p className="mt-4 text-center text-sm text-gray-400">Try: chenmo-space.top</p>
+                    </div>
                 </div>
-            </div>
-        </div>
+            );
 
-        <div class="notice" style="margin-top:18px;">
-            小提示：  
-            <br>① 上面的词只是示例，你可以输入任何你觉得可疑的词。  
-            <br>② 同一个词在不同页面中也可能出现。  
-            <br>③ 故事里所有角色、事件都是虚构的，用来帮助我们思考：<span class="highlight">当身边的人“失踪”在自己的情绪里时，我们能做什么？</span>
-        </div>
+            return (
+                <div className={`h-screen w-full bg-[#121212] flex flex-col items-center justify-center p-4 relative screen-container glitch-container ${isGlitching ? 'glitch-active' : ''}`}>
+                    <div className="scanlines"></div>
+                    <div className="scan-bar"></div>
+                    <div className={`periodic-glitch ${isGlitching ? 'opacity-100' : 'opacity-0'}`}></div>
+                    <AudioSystem />
+                    
+                    <div className="w-full max-w-6xl h-[90vh] bg-white rounded shadow-2xl overflow-hidden flex flex-col relative z-10">
+                        <div className="bg-[#f0f0f0] p-2 flex items-center space-x-3 border-b shadow-sm">
+                            <div className="flex space-x-2 ml-2 mr-4">
+                                <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                                <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                            </div>
+                            <button onClick={goBack} disabled={history.length <= 1} className={`text-xl px-2 ${history.length <= 1 ? 'text-gray-300' : 'text-gray-600 hover:text-black'}`}>←</button>
+                            <button onClick={() => navigate("index.html")} className="text-gray-600 hover:text-black text-lg px-2">🏠</button>
+                            <form onSubmit={(e) => { e.preventDefault(); if(inputUrl === "ending") navigate("ending"); }} className="flex-1">
+                                <input className="w-full px-3 py-1 text-sm border rounded-sm" placeholder={url === "index.html" ? "https://chenmo-space.top" : `https://chenmo-space.top/${url}`} value={inputUrl} onChange={e => setInputUrl(e.target.value)}/>
+                            </form>
+                        </div>
+                        <div className="flex-1 relative overflow-hidden bg-white">
+                            {renderContent()}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
 
-        <div class="footer">
-            如果你准备好了，就从输入第一个关键词开始搜索吧。
-        </div>
-    </section>
-</main>
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
 </body>
 </html>
